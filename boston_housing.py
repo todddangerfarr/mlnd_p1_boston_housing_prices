@@ -127,21 +127,20 @@ def learning_curve(depth, X_train, y_train, X_test, y_test):
 
 
     # Plot learning curve graph
-    learning_curve_graph(sizes, train_err, test_err, depth)
+    learning_curve_graph(sizes, train_err, test_err)
 
 
-def learning_curve_graph(sizes, train_err, test_err, depth):
+def learning_curve_graph(sizes, train_err, test_err):
     """Plot training and test error as a function of the training size."""
 
-    #pl.figure()
-    ax = pl.subplot(2, 5, depth)
-    pl.title('Decision Trees: Max Depth ' + str(depth))
-    ax.plot(sizes, test_err, lw=2, color='r', label = 'test error')
-    ax.plot(sizes, train_err, lw=2, color='c', label = 'training error')
-    ax.legend()
-    ax.set_xlabel('Training Size')
-    ax.set_ylabel('Error')
-    #pl.show()
+    pl.figure()
+    pl.title('Decision Trees: Performance vs Training Size')
+    pl.plot(sizes, test_err, lw=2, color='r', label = 'test error')
+    pl.plot(sizes, train_err, lw=2, color='c', label = 'training error')
+    pl.legend()
+    pl.xlabel('Training Size')
+    pl.ylabel('Error')
+    pl.show()
 
 
 def model_complexity(X_train, y_train, X_test, y_test):
@@ -245,10 +244,8 @@ def main():
     # Learning Curve Graphs
     print("***** LEARNING CURVE *****")
     max_depths = [1,2,3,4,5,6,7,8,9,10]
-    pl.figure()
     for max_depth in max_depths:
         learning_curve(max_depth, X_train, y_train, X_test, y_test)
-    pl.show()
     print()
 
     # Model Complexity Graph
