@@ -9,6 +9,7 @@ from sklearn.tree import DecisionTreeRegressor
 ################################
 ### ADD EXTRA LIBRARIES HERE ###
 ################################
+import pandas as pd
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import (mean_squared_error, mean_absolute_error,
     median_absolute_error, make_scorer)
@@ -34,8 +35,7 @@ def explore_city_data(city_data):
     ### Step 1. YOUR CODE GOES HERE ###
     ###################################
 
-    number_of_houses = len(housing_prices)
-    number_of_features = len(housing_features[0])
+    number_of_houses, number_of_features = city_data.data.shape
     min_house_price = np.min(housing_prices) * HOUSE_PRICE_MULTIPLIER
     max_house_price = np.max(housing_prices) * HOUSE_PRICE_MULTIPLIER
     mean_house_price = np.mean(housing_prices) * HOUSE_PRICE_MULTIPLIER
@@ -43,6 +43,7 @@ def explore_city_data(city_data):
     house_prices_std = np.std(housing_prices)
 
     print("***** EXPLORING CITY DATA *****")
+    print(city_data.DESCR)
     print("Number of Houses: {}".format(number_of_houses))
     print("Number of features: {}".format(number_of_features))
     print("Minimum Housing Price: ${:,.2f}".format(min_house_price))
@@ -60,6 +61,19 @@ def explore_city_data(city_data):
     # Calculate median price?
     # Calculate standard deviation?
 
+    city_dataframe = pd.DataFrame(city_data.data)
+    city_dataframe.columns = city_data.feature_names
+
+    pl.figure()
+    for index, feature in enumerate(city_dataframe.columns.values):
+        ax = pl.subplot(3, 5, index + 1)
+        ax.set_title(str(feature) + " vs Housing Price")
+        ax.set_ylabel("Price in $10,000's")
+        ax.set_xlabel(feature)
+        pl.scatter(city_dataframe[str(feature)], city_data.target,
+                   s=20, c='c', alpha=.5)
+    pl.show()
+
 
 def split_data(city_data):
     """Randomly shuffle the sample set. Divide it into 70 percent training and 30 percent testing data."""
@@ -70,7 +84,9 @@ def split_data(city_data):
     ###################################
     ### Step 2. YOUR CODE GOES HERE ###
     ###################################
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.70)
+    X_train, X_test, y_train, y_test = (
+        train_test_split(X, y, train_size=0.70)
+        )
 
     return X_train, y_train, X_test, y_test
 
@@ -111,20 +127,21 @@ def learning_curve(depth, X_train, y_train, X_test, y_test):
 
 
     # Plot learning curve graph
-    learning_curve_graph(sizes, train_err, test_err)
+    learning_curve_graph(sizes, train_err, test_err, depth)
 
 
-def learning_curve_graph(sizes, train_err, test_err):
+def learning_curve_graph(sizes, train_err, test_err, depth):
     """Plot training and test error as a function of the training size."""
 
-    pl.figure()
-    pl.title('Decision Trees: Performance vs Training Size')
-    pl.plot(sizes, test_err, lw=2, label = 'test error')
-    pl.plot(sizes, train_err, lw=2, label = 'training error')
-    pl.legend()
-    pl.xlabel('Training Size')
-    pl.ylabel('Error')
-    pl.show()
+    #pl.figure()
+    ax = pl.subplot(2, 5, depth)
+    pl.title('Decision Trees: Max Depth ' + str(depth))
+    ax.plot(sizes, test_err, lw=2, color='r', label = 'test error')
+    ax.plot(sizes, train_err, lw=2, color='c', label = 'training error')
+    ax.legend()
+    ax.set_xlabel('Training Size')
+    ax.set_ylabel('Error')
+    #pl.show()
 
 
 def model_complexity(X_train, y_train, X_test, y_test):
@@ -159,8 +176,8 @@ def model_complexity_graph(max_depth, train_err, test_err):
 
     pl.figure()
     pl.title('Decision Trees: Performance vs Max Depth')
-    pl.plot(max_depth, test_err, lw=2, label = 'test error')
-    pl.plot(max_depth, train_err, lw=2, label = 'training error')
+    pl.plot(max_depth, test_err, lw=2, color='r', label = 'test error')
+    pl.plot(max_depth, train_err, lw=2, color='c', label = 'training error')
     pl.legend()
     pl.xlabel('Max Depth')
     pl.ylabel('Error')
@@ -185,13 +202,14 @@ def fit_predict_model(city_data):
     # 1. Find an appropriate performance metric. This should be the same as the
     # one used in your performance_metric procedure above:
     # http://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html
-    mse_scorer = make_scorer(mean_squared_error, greater_is_better=False)
+    scorer = make_scorer(mean_squared_error, greater_is_better=False)
+
 
     # 2. We will use grid search to fine tune the Decision Tree Regressor and
     # obtain the parameters that generate the best training performance. Set up
     # the grid search object here.
     # http://scikit-learn.org/stable/modules/generated/sklearn.grid_search.GridSearchCV.html#sklearn.grid_search.GridSearchCV
-    reg = GridSearchCV(regressor, parameters, scoring=mse_scorer)
+    reg = GridSearchCV(regressor, parameters, scoring=scorer)
     reg.fit(X, y)
 
     # Fit the learner to the training data to obtain the best parameter set
@@ -205,6 +223,7 @@ def fit_predict_model(city_data):
     y = reg.predict(x)
     print ("House: " + str(x))
     print ("Prediction: ${:,.2f}".format(y[0] * HOUSE_PRICE_MULTIPLIER))
+
 
 #In the case of the documentation page for GridSearchCV,
 #it might be the case that the example is just a demonstration of syntax
@@ -226,8 +245,10 @@ def main():
     # Learning Curve Graphs
     print("***** LEARNING CURVE *****")
     max_depths = [1,2,3,4,5,6,7,8,9,10]
+    pl.figure()
     for max_depth in max_depths:
         learning_curve(max_depth, X_train, y_train, X_test, y_test)
+    pl.show()
     print()
 
     # Model Complexity Graph
