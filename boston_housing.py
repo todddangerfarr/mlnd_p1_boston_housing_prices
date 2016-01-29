@@ -42,8 +42,8 @@ def explore_city_data(city_data):
     median_house_price = np.median(housing_prices) * HOUSE_PRICE_MULTIPLIER
     house_prices_std = np.std(housing_prices)
 
-    print("***** EXPLORING CITY DATA *****")
-    print(city_data.DESCR)
+    print("\n***** EXPLORING CITY DATA *****")
+    #print(city_data.DESCR)
     print("Number of Houses: {}".format(number_of_houses))
     print("Number of features: {}".format(number_of_features))
     print("Minimum Housing Price: ${:,.2f}".format(min_house_price))
@@ -61,9 +61,12 @@ def explore_city_data(city_data):
     # Calculate median price?
     # Calculate standard deviation?
 
+    #further exploration of the dataset and it's features
     city_dataframe = pd.DataFrame(city_data.data)
     city_dataframe.columns = city_data.feature_names
 
+    #plot each feature vs the house price
+    print('***** FEATURES vs TARGET PLOTS *****')
     pl.figure()
     for index, feature in enumerate(city_dataframe.columns.values):
         ax = pl.subplot(3, 5, index + 1)
@@ -74,6 +77,13 @@ def explore_city_data(city_data):
                    s=20, c='c', alpha=.5)
     pl.show()
 
+    #further exploration of the model prediction
+    #comparing the prediction's features to the averages in it's price range
+    price_range = np.where(np.logical_and(city_data.target >= 21, city_data.target <= 22))
+    price_range_dataframe = city_dataframe.loc[price_range].reset_index(drop=True)
+    print('\n***** PRICE RANGE DATAFRAME ******')
+    print('Feature averages between $210,000.00 & $220,000.00')
+    print(price_range_dataframe.mean(), '\n')
 
 def split_data(city_data):
     """Randomly shuffle the sample set. Divide it into 70 percent training and 30 percent testing data."""
@@ -146,7 +156,7 @@ def learning_curve_graph(sizes, train_err, test_err):
 def model_complexity(X_train, y_train, X_test, y_test):
     """Calculate the performance of the model as model complexity increases."""
 
-    print ("Model Complexity: \n")
+    print ("***** MODEL COMPLEXITY PLOT *****\n")
 
     # We will vary the depth of decision trees from 2 to 25
     max_depth = np.arange(1, 25)
@@ -212,7 +222,7 @@ def fit_predict_model(city_data):
     reg.fit(X, y)
 
     # Fit the learner to the training data to obtain the best parameter set
-    print ("Final Model: ")
+    print ("***** FINAL MODEL *****")
     print (reg.fit(X, y), '\n')
     print ("Best Max Depth: {}".format(reg.best_params_))
 
