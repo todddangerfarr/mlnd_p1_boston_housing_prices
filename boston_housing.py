@@ -14,9 +14,12 @@ from sklearn.cross_validation import train_test_split
 from sklearn.metrics import (mean_squared_error, mean_absolute_error,
     median_absolute_error, make_scorer)
 from sklearn.grid_search import GridSearchCV
+from sklearn.neighbors import NearestNeighbors
 
-#assuming prices are in $10,000's
-HOUSE_PRICE_MULTIPLIER = 10000
+
+#assuming prices are in $1,000's
+HOUSE_PRICE_MULTIPLIER = 1000
+
 
 def load_data():
     """Load the Boston dataset."""
@@ -82,7 +85,7 @@ def explore_city_data(city_data):
     price_range = np.where(np.logical_and(city_data.target >= 21, city_data.target <= 22))
     price_range_dataframe = city_dataframe.loc[price_range].reset_index(drop=True)
     print('\n***** PRICE RANGE DATAFRAME ******')
-    print('Feature averages between $210,000.00 & $220,000.00')
+    print('Feature averages between $21,000.00 & $22,000.00')
     print(price_range_dataframe.mean(), '\n')
 
 def split_data(city_data):
@@ -147,6 +150,7 @@ def learning_curve_graph(sizes, train_err, test_err):
     pl.title('Decision Trees: Performance vs Training Size')
     pl.plot(sizes, test_err, lw=2, color='r', label = 'test error')
     pl.plot(sizes, train_err, lw=2, color='c', label = 'training error')
+    #pl.axvline(x=337, ymin=0, ymax=100, linewidth=2, color='b', label='3 k-fold')
     pl.legend()
     pl.xlabel('Training Size')
     pl.ylabel('Error')
@@ -233,10 +237,19 @@ def fit_predict_model(city_data):
     print ("House: " + str(x))
     print ("Prediction: ${:,.2f}".format(y[0] * HOUSE_PRICE_MULTIPLIER))
 
+    #find the nearest neighbors
+    indices = find_nearest_neighbors(x, X)
+    print("Mean of nearest neighbors: ${:,.2f}".format(
+            city_data.target[indices].mean() * HOUSE_PRICE_MULTIPLIER))
 
-#In the case of the documentation page for GridSearchCV,
-#it might be the case that the example is just a demonstration of syntax
-#for use of the function, rather than a statement about
+
+def find_nearest_neighbors(x, X):
+    """Find the nearest neighbors of the vector (x) in the dataset (X)."""
+    neighbors = NearestNeighbors(n_neighbors = 10).fit(X)
+    distances, indices = neighbors.kneighbors(x)
+    return indices.tolist()[0]
+
+
 def main():
     """Analyze the Boston housing data. Evaluate and validate the
     performanance of a Decision Tree regressor on the housing data.
